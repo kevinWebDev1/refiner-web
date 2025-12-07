@@ -1,10 +1,13 @@
 export default async function handler(req, res) {
-  // Only allow POST requests
+  if (req.method === "GET") {
+    return res.status(200).json({ message: "Refiner AI POST /refine endpoint. Use POST with JSON." });
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Lazy import and initialization of Bytez SDK
+  // Lazy import Bytez SDK
   let sdk, model;
   try {
     const Bytez = (await import("bytez.js")).default;
@@ -15,7 +18,7 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Failed to initialize SDK" });
   }
 
-  // Parse JSON body manually
+  // Parse JSON body
   let body = {};
   try {
     const chunks = [];
@@ -28,7 +31,7 @@ export default async function handler(req, res) {
   const userText = body.text?.trim();
   if (!userText) return res.status(400).json({ error: "Missing 'text'" });
 
-  // System prompt for refinement
+  // System prompt
   const systemPrompt = `
 You are a keyboard text-refinement AI.
 
