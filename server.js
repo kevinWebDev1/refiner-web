@@ -8,7 +8,7 @@ import Bytez from "bytez.js";
 dotenv.config();
 
 const app = express();
-const PORT = 5000;
+// const PORT = 5000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -121,8 +121,8 @@ app.post("/chat", async (req, res) => {
     }
 });
 
-// ---------------------- START ----------------------
-app.listen(PORT, () => {
-    console.log(`🔥 Bytez Backup Server LIVE at http://localhost:${PORT}`);
-    console.log(`Update Check: http://localhost:${PORT}/app-update?version=1.5.0`);
-});
+// // ---------------------- START ----------------------
+// app.listen(PORT, () => {
+//     console.log(`🔥 Bytez Backup Server LIVE at http://localhost:${PORT}`);
+//     console.log(`Update Check: http://localhost:${PORT}/app-update?version=1.5.0`);
+// });
