@@ -4,15 +4,13 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const API_KEY = process.env.API_KEY;
-if (!API_KEY) {
-  throw new Error("❌ Missing API_KEY in .env");
-}
+if (!API_KEY) throw new Error("❌ Missing API_KEY in .env");
 
 const sdk = new Bytez(API_KEY);
 const model = sdk.model("openai/gpt-4.1"); // Latest GPT-4.1
 
 export default async function handler(req, res) {
-  const { url, method } = req;
+  const { url, method, body } = req;
 
   // ---------------------- ROOT ----------------------
   if (url === "/" && method === "GET") {
@@ -58,8 +56,7 @@ Previous:
 
   // ---------------------- REFINE ----------------------
   if (url === "/refine" && method === "POST") {
-    const body = await getJson(req);
-    const userText = body.text?.trim();
+    const userText = body?.text?.trim();
     if (!userText) return res.status(400).json({ error: "Missing 'text'" });
 
     const systemPrompt = `
@@ -82,15 +79,14 @@ ${userText}
       const refined = response.output?.content?.trim() || userText;
       return res.status(200).json({ refinedText: refined });
     } catch (err) {
-      console.error("REFINE ERROR:", err.message);
+      console.error("REFINE ERROR:", err.stack);
       return res.status(502).json({ error: "AI failed", details: err.message });
     }
   }
 
   // ---------------------- CHAT ----------------------
   if (url === "/chat" && method === "POST") {
-    const body = await getJson(req);
-    const userText = body.text?.trim();
+    const userText = body?.text?.trim();
     if (!userText) return res.status(400).json({ error: "Missing 'text'" });
 
     const systemPrompt = "Short direct answer. No extra fluff.";
@@ -104,27 +100,11 @@ ${userText}
       const chatText = response.output?.content?.trim() || "No response";
       return res.status(200).json({ chatText });
     } catch (err) {
-      console.error("CHAT ERROR:", err.message);
+      console.error("CHAT ERROR:", err.stack);
       return res.status(502).json({ error: "AI failed", details: err.message });
     }
   }
 
   // ---------------------- NOT FOUND ----------------------
   return res.status(404).json({ error: "Route not found" });
-}
-
-// ---------------------- Helper: parse JSON ----------------------
-async function getJson(req) {
-  return new Promise((resolve, reject) => {
-    let data = "";
-    req.on("data", chunk => (data += chunk));
-    req.on("end", () => {
-      try {
-        resolve(JSON.parse(data || "{}"));
-      } catch (err) {
-        reject(err);
-      }
-    });
-    req.on("error", err => reject(err));
-  });
 }
