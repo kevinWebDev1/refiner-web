@@ -1,13 +1,18 @@
-import Bytez from "bytez.js";
-
-// Initialize Bytez SDK using environment variable
-const sdk = new Bytez(process.env.API_KEY);
-const model = sdk.model("openai/gpt-4.1");
-
 export default async function handler(req, res) {
-  // Only allow POST
+  // Only allow POST requests
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  // Lazy import and initialization of Bytez SDK
+  let sdk, model;
+  try {
+    const Bytez = (await import("bytez.js")).default;
+    sdk = new Bytez(process.env.API_KEY);
+    model = sdk.model("openai/gpt-4.1");
+  } catch (err) {
+    console.error("SDK INIT ERROR:", err);
+    return res.status(500).json({ error: "Failed to initialize SDK" });
   }
 
   // Parse JSON body manually
