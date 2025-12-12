@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import Bytez from "bytez.js";
 
+import "dotenv/config";
+
 const app = express();
 const PORT = 5000;
 
@@ -10,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize Bytez
-const key = "f416c90e373d70cf2112b8ad52b6b556";
+const key = process.env.BYTEZ_KEY;
 // const sdk = new Bytez(key); -- Moved to handlers
 // const model = sdk.model("openai/gpt-3.5-turbo"); -- Moved to handlers
 
