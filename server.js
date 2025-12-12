@@ -11,8 +11,8 @@ app.use(express.json());
 
 // Initialize Bytez
 const key = "f416c90e373d70cf2112b8ad52b6b556";
-const sdk = new Bytez(key);
-const model = sdk.model("openai/gpt-3.5-turbo");
+// const sdk = new Bytez(key); -- Moved to handlers
+// const model = sdk.model("openai/gpt-3.5-turbo"); -- Moved to handlers
 
 // Routes
 app.get("/", (req, res) => {
@@ -26,6 +26,9 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
+    const sdk = new Bytez(key);
+    const model = sdk.model("openai/gpt-3.5-turbo");
+
     const { error, output } = await model.run([
       {
         "role": "user",
@@ -53,6 +56,9 @@ app.post("/refine", async (req, res) => {
   }
 
   try {
+    const sdk = new Bytez(key);
+    const model = sdk.model("openai/gpt-3.5-turbo");
+
     const { error, output } = await model.run([
       {
         "role": "system",
