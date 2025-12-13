@@ -30,7 +30,7 @@ app.post("/chat", async (req, res) => {
           "content": text
         }
       ],
-      "model": "qwen/qwen-2.5-32b",
+      "model": "qwen/qwen3-32b",
       "temperature": 0.6,
       "max_completion_tokens": 4096,
       "top_p": 0.95,
@@ -69,7 +69,7 @@ app.post("/refine", async (req, res) => {
           "content": `Refine this text: "${text}"`
         }
       ],
-      "model": "qwen/qwen-2.5-32b",
+      "model": "qwen/qwen3-32b",
       "temperature": 0.6,
       "max_completion_tokens": 4096,
       "top_p": 0.95,
