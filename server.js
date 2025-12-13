@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
-import Bytez from "bytez.js";
-
+import { Groq } from "groq-sdk";
 import "dotenv/config";
 
 const app = express();
@@ -11,14 +10,9 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// Initialize Bytez
-const key = process.env.BYTEZ_KEY;
-// const sdk = new Bytez(key); -- Moved to handlers
-// const model = sdk.model("openai/gpt-3.5-turbo"); -- Moved to handlers
-
 // Routes
 app.get("/", (req, res) => {
-  res.send("Refiner AI Backend with Bytez.js is running!");
+  res.send("Refiner AI Backend with Groq is running!");
 });
 
 app.post("/chat", async (req, res) => {
@@ -28,23 +22,28 @@ app.post("/chat", async (req, res) => {
   }
 
   try {
-    const sdk = new Bytez(key);
-    const model = sdk.model("openai/gpt-3.5-turbo");
+    const groq = new Groq({ apiKey: process.env.API_KEY });
+    const chatCompletion = await groq.chat.completions.create({
+      "messages": [
+        {
+          "role": "user",
+          "content": text
+        }
+      ],
+      "model": "qwen/qwen-2.5-32b",
+      "temperature": 0.6,
+      "max_completion_tokens": 4096,
+      "top_p": 0.95,
+      "stream": true,
+      "stop": null
+    });
 
-    const { error, output } = await model.run([
-      {
-        "role": "user",
-        "content": text
-      }
-    ]);
-
-    if (error) {
-      console.error("Bytez Error:", error);
-      return res.status(500).json({ error: "Failed to fetch response from Bytez" });
+    let fullResponse = "";
+    for await (const chunk of chatCompletion) {
+      fullResponse += chunk.choices[0]?.delta?.content || '';
     }
 
-    const responseText = typeof output === 'string' ? output : output.content;
-    res.json({ chatText: responseText });
+    res.json({ chatText: fullResponse });
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: err.message });
@@ -58,27 +57,32 @@ app.post("/refine", async (req, res) => {
   }
 
   try {
-    const sdk = new Bytez(key);
-    const model = sdk.model("openai/gpt-3.5-turbo");
+    const groq = new Groq({ apiKey: process.env.API_KEY });
+    const chatCompletion = await groq.chat.completions.create({
+      "messages": [
+        {
+          "role": "system",
+          "content": "You are a helpful assistant that refines text to be more professional, clear, and concise."
+        },
+        {
+          "role": "user",
+          "content": `Refine this text: "${text}"`
+        }
+      ],
+      "model": "qwen/qwen-2.5-32b",
+      "temperature": 0.6,
+      "max_completion_tokens": 4096,
+      "top_p": 0.95,
+      "stream": true,
+      "stop": null
+    });
 
-    const { error, output } = await model.run([
-      {
-        "role": "system",
-        "content": "You are a helpful assistant that refines text to be more professional, clear, and concise."
-      },
-      {
-        "role": "user",
-        "content": `Refine this text: "${text}"`
-      }
-    ]);
-
-    if (error) {
-      console.error("Bytez Error:", error);
-      return res.status(500).json({ error: "Failed to fetch response from Bytez" });
+    let fullResponse = "";
+    for await (const chunk of chatCompletion) {
+      fullResponse += chunk.choices[0]?.delta?.content || '';
     }
 
-    const responseText = typeof output === 'string' ? output : output.content;
-    res.json({ refinedText: responseText });
+    res.json({ refinedText: fullResponse });
   } catch (err) {
     console.error("Server Error:", err);
     res.status(500).json({ error: err.message });
