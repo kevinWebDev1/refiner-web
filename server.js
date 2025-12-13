@@ -26,6 +26,10 @@ app.post("/chat", async (req, res) => {
     const chatCompletion = await groq.chat.completions.create({
       "messages": [
         {
+          "role": "system",
+          "content": "You are a helpful assistant. Answer directly and concisely. Do not include your thinking process, internal monologue, or conversational filler. Output only the answer."
+        },
+        {
           "role": "user",
           "content": text
         }
@@ -42,6 +46,9 @@ app.post("/chat", async (req, res) => {
     for await (const chunk of chatCompletion) {
       fullResponse += chunk.choices[0]?.delta?.content || '';
     }
+
+    // Clean thoughts if any
+    fullResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
     res.json({ chatText: fullResponse });
   } catch (err) {
@@ -62,7 +69,7 @@ app.post("/refine", async (req, res) => {
       "messages": [
         {
           "role": "system",
-          "content": "You are a helpful assistant that refines text to be more professional, clear, and concise."
+          "content": "You are a text refining tool. Output ONLY the refined text. Do not provide explanations, greeting, metadata, or 'Here is the refined version'. No internal monologue. Strict output only."
         },
         {
           "role": "user",
@@ -81,6 +88,9 @@ app.post("/refine", async (req, res) => {
     for await (const chunk of chatCompletion) {
       fullResponse += chunk.choices[0]?.delta?.content || '';
     }
+
+    // Clean thoughts if any
+    fullResponse = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
     res.json({ refinedText: fullResponse });
   } catch (err) {
